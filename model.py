@@ -1,18 +1,27 @@
-from transformers import ViltProcessor, ViltForQuestionAnswering
+from transformers import pipeline
 from PIL import Image
+from moviepy.video.io.VideoFileClip import VideoFileClip
 
-# 470MB
-processor = ViltProcessor.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
-model = ViltForQuestionAnswering.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
+asr_pipeline = pipeline("automatic-speech-recognition",
+                        model="openai/whisper-small", device='mps')
 
 
-def model_pipeline(text: str, image: Image):
-    # prepare inputs
-    encoding = processor(image, text, return_tensors="pt")
+def extract_audio(video_path):
+    video_clip = VideoFileClip(video_path)
+    audio_clip = video_clip.audio
+    audio_filename = f'extracted_audio.wav'
+    audio_clip.write_audiofile(audio_filename)
+    audio_clip.close()
+    video_clip.close()
+    return audio_filename
 
-    # forward pass
-    outputs = model(**encoding)
-    logits = outputs.logits
-    idx = logits.argmax(-1).item()
 
-    return  model.config.id2label[idx]
+def transcribe_audio(audio_path):
+    print('Transcribing audio...')
+    result = asr_pipeline(audio_path)
+    return result
+
+
+def save_to_file(filename, text):
+    with open(filename, 'w') as f:
+        f.write(text)

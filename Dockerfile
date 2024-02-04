@@ -11,6 +11,8 @@ FROM python:${PYTHON_VERSION} as base
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 
+RUN apt-get update && apt-get install -y ffmpeg libomp-dev
+
 # Prevents Python from writing pyc files.
 ENV PYTHONDONTWRITEBYTECODE=1
 
